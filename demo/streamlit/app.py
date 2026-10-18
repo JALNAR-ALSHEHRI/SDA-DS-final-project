@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -372,51 +371,6 @@ except (
     )
 
     st.stop()
-
-
-# ============================================================
-# 9. SAVED MODEL EVALUATION
-# ============================================================
-
-with st.expander(
-    "Saved model evaluation · RF-DETR-M"
-):
-
-    rows = []
-
-    for split in ["valid", "test"]:
-
-        values = config[split]
-
-        rows.append(
-            {
-                "Split": split,
-                "Precision": (
-                    f"{values['precision']:.2%}"
-                ),
-                "Recall": (
-                    f"{values['recall']:.2%}"
-                ),
-                "F1": (
-                    f"{values['f1']:.2%}"
-                ),
-            }
-        )
-
-    st.dataframe(
-        pd.DataFrame(rows),
-        hide_index=True,
-        use_container_width=True,
-    )
-
-    st.caption(
-        f"Fixed confidence: {threshold:.2f} · "
-        f"Detection cap: {cap} · "
-        f"Evaluation IoU: {config['iou']:.2f}. "
-        "These are dataset evaluation scores, "
-        "not scores for the uploaded image."
-    )
-
 
 # ============================================================
 # 10. IMAGE UPLOAD INTERFACE
