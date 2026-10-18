@@ -96,12 +96,26 @@ st.markdown(
         color:#b4d6a1;
         margin-bottom:12px;
     }
-    [data-testid="stMetric"] {
-        background:#fff;
-        padding:20px;
-        border:1px solid #dde5d5;
-        border-radius:18px;
+    
+     [data-testid="stMetric"] {
+       background-color: #ffffff !important;
+       padding: 20px;
+       border: 1px solid #dde5d5;
+       border-radius: 18px;
     }
+
+    [data-testid="stMetric"] * {
+       color: #173c2e !important;
+    }
+
+    [data-testid="stMetricLabel"] {
+       color: #456b59 !important;
+    }
+
+   [data-testid="stMetricValue"] {
+       color: #173c2e !important;
+    }
+
     [data-testid="stFileUploader"] {
         background:#fff;
         border-radius:18px;
