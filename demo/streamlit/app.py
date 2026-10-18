@@ -5,6 +5,9 @@ from io import BytesIO
 import json
 import threading
 
+import os
+import gdown
+
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -13,6 +16,47 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 from rfdetr import RFDETRMedium
 
 ROOT = Path(__file__).resolve().parent
+
+
+CHECKPOINT_PATH = ROOT / "checkpoint_best_total.pth"
+
+# Google Drive file ID
+FILE_ID = "1JKVnGlvQCmkVzvx4Ep8rC6Z-ThnXSM8P"
+
+def download_checkpoint():
+    if CHECKPOINT_PATH.is_file() and CHECKPOINT_PATH.stat().st_size > 0:
+        return CHECKPOINT_PATH
+
+    url = f"https://drive.google.com/uc?id={FILE_ID}"
+    temp_path = CHECKPOINT_PATH.with_suffix(".download")
+
+    try:
+        with st.spinner("Downloading model checkpoint..."):
+            gdown.download(
+                url,
+                str(temp_path),
+                quiet=True,
+                fuzzy=True,
+            )
+
+        if not temp_path.exists() or temp_path.stat().st_size == 0:
+            raise RuntimeError("Checkpoint download failed.")
+
+        # Basic check against downloading an HTML error page
+        with open(temp_path, "rb") as f:
+            header = f.read(256).lower()
+        if b"<html" in header or b"<!doctype html" in header:
+            raise RuntimeError("Google Drive returned HTML instead of model weights.")
+
+        os.replace(temp_path, CHECKPOINT_PATH)
+        return CHECKPOINT_PATH
+
+    finally:
+        if temp_path.exists():
+            temp_path.unlink()
+
+
+
 NAMES = ['BIODEGRADABLE', 'CARDBOARD', 'GLASS', 'METAL', 'PAPER', 'PLASTIC']
 COLORS = ['#15803d', '#c98518', '#089a91', '#7354c9', '#168cbb', '#d05e8b']
 TZ = ZoneInfo('Asia/Riyadh')
@@ -66,16 +110,20 @@ def draw_boxes(im, boxes, classes, scores):
         draw.text((x, y), label, font=font, fill='white')
     return result
 
-ckpt = ROOT / 'checkpoint_best_total.pth'
-metrics = ROOT / 'metrics.json'
-if not ckpt.is_file() or not metrics.is_file() or not (ROOT / 'training_config.json').is_file():
-    st.info('Setup: place checkpoint_best_total.pth and metrics.json plus training_config.json in the same folder as app.py, then refresh.')
+
+metrics = ROOT / "metrics.json"
+
+if not metrics.is_file() or not (ROOT / "training_config.json").is_file():
+    st.error("Missing metrics.json or training_config.json")
     st.stop()
+
 try:
-    config = json.loads(metrics.read_text())
-    threshold = float(config['frozen_threshold'])
-    cap = int(config['det_cap'])
-    if not 0.01 <= threshold <= 1 or cap < 1:
+    ckpt = download_checkpoint()
+except Exception as exc:
+    st.error(f"Could not download model checkpoint: {exc}")
+    st.stop()
+
+if not 0.01 <= threshold <= 1 or cap < 1:
         raise ValueError('Invalid threshold or detection cap.')
 except (KeyError, ValueError, TypeError) as exc:
     st.error(f'Could not read the evaluation settings: {exc}')
