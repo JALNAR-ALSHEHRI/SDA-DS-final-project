@@ -3,3 +3,6 @@ rfdetr
 pillow
 pandas
 numpy
+gdown
+torch
+torchvision
