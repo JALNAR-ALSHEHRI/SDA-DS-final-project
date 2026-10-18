@@ -151,10 +151,9 @@ def download_checkpoint():
             "Downloading model checkpoint from Google Drive..."
         ):
             result = gdown.download(
-                url,
-                str(temp_path),
+                id=FILE_ID,
+                output=str(temp_path),
                 quiet=True,
-                fuzzy=True,
             )
 
         if (
